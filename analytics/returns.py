@@ -23,6 +23,10 @@ data["daily_return"] = data["daily_return"]*100
 data["cumulative_return"] = (1 + data["daily_return"] / 100).cumprod() -1
 data["cumulative_return"] = data["cumulative_return"]*100
 
+# Volatility = standard deviation of daily returns
+volatility = data["daily_return"].std()
+print(f"Volatility: {volatility:.2f}%")
+
 
 
 
