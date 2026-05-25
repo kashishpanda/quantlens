@@ -9,7 +9,7 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 engine = create_engine(DATABASE_URL)
 
-symbol = "GOOGL"
+symbol = input("Enter stock symbol (e.g AAPL)")
 period = "1mo"
 ticker = yf.Ticker(symbol)
 data = ticker.history(period = period)
