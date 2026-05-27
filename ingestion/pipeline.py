@@ -1,7 +1,7 @@
 import pandas as pd
 import yfinance as yf
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 import os
 
 load_dotenv()
@@ -9,7 +9,11 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 engine = create_engine(DATABASE_URL)
 
-symbols = ["AAPL", "GOOGL", "MSFT", "NVDA", "JPM", "AMZN"]
+with engine.connect() as conn:
+    result = conn.execute(text("SELECT ticker FROM watched_stocks WHERE active = TRUE"))
+    symbols = [row[0] for row in result.fetchall()]
+
+print(f"Fetching data for: {symbols}")
 period = "1mo"
 for symbol in symbols:
     ticker = yf.Ticker(symbol)
@@ -21,11 +25,21 @@ for symbol in symbols:
     data["Volume"] = data["Volume"].astype(int)
     data["Ticker"] = symbol
     data.columns = data.columns.str.lower()
-    data.to_sql(         # Insert data to database
-        "equity_prices",
-        engine,
-        if_exists = 'append',
-        index = False
-    )
+    with engine.connect() as conn:
+        for _, row in data.iterrows():
+            conn.execute(text("""
+                INSERT INTO equity_prices (date, open, high, low, close, volume, ticker)
+                VALUES (:date, :open, :high, :low, :close, :volume, :ticker)
+                ON CONFLICT (date, ticker) DO NOTHING
+            """), {
+                "date": row["date"],
+                "open": row["open"],
+                "high": row["high"],
+                "low": row["low"],
+                "close": row["close"],
+                "volume": row["volume"],
+                "ticker": row["ticker"]
+            })
+        conn.commit()  
 
     print(f"{symbol} inserted successfully")
