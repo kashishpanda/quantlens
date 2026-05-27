@@ -12,7 +12,7 @@ st.title("Quantitative Dashboard")
 st.write("Institutional Quantitative Research Platform")
 
 # Stock Selector
-ticker = st.selectbox("Select a Stock", ["AAPL", "GOOGL", "MSFT"])
+ticker = st.selectbox("Select a Stock", ["AAPL", "GOOGL", "MSFT", "NVDA", "JPM", "AMZN"])
 
 # Fetch data from database
 with engine.connect() as conn:
