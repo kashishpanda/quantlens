@@ -12,7 +12,11 @@ st.title("Quantitative Dashboard")
 st.write("Institutional Quantitative Research Platform")
 
 # Stock Selector
-ticker = st.selectbox("Select a Stock", ["AAPL", "GOOGL", "MSFT", "NVDA", "JPM", "AMZN"])
+# Get tickers dynamically from database
+with engine.connect() as conn:
+    result = conn.execute(text("SELECT ticker FROM watched_stocks WHERE active = TRUE ORDER BY ticker"))
+    tickers = [row[0] for row in result.fetchall()]
+ticker = st.selectbox("Select a Stock", tickers)
 
 # Fetch data from database
 with engine.connect() as conn:
