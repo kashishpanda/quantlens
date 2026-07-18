@@ -2,7 +2,14 @@ import pandas as pd
 import yfinance as yf
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
+import logging
 import os
+
+logging.basicConfig(
+     filename = "logs/pipeline.log",
+     level = logging.INFO,
+     format = "%(asctime)s - %(levelname)s - %(message)s"
+)
 
 load_dotenv()
 
@@ -13,14 +20,14 @@ with engine.connect() as conn:
     result = conn.execute(text("SELECT ticker FROM watched_stocks WHERE active = TRUE"))
     symbols = [row[0] for row in result.fetchall()]
 
-print(f"Fetching data for: {symbols}")
+logging.info(f"Fetching data for: {symbols}")
 period = "1mo"
 for symbol in symbols:
     try:
             ticker = yf.Ticker(symbol)
             data = ticker.history(period = period)
             if data.empty:
-                print(f"WARNING - No data found for {symbol}, skipping")
+                logging.warning(f"No data found for {symbol}, skipping")
                 continue
             data = data[[ "Open", "High", "Low", "Close", "Volume"]]
             data = data.reset_index()
@@ -45,8 +52,8 @@ for symbol in symbols:
                         "ticker": row["ticker"]
                     })
                 conn.commit()  
-            print(f"{symbol} inserted successfully")
+            logging.info(f"{symbol} inserted successfully")
     except Exception as e:
-        print(f"ERROR - {symbol} failed: {e}")                
+        logging.error(f"{symbol} failed: {e}")                
     
     
