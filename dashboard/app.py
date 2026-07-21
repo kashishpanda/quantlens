@@ -5,7 +5,8 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = st.secrets.get("DATABASE_URL") if hasattr(st, "secrets") and "DATABASE_URL" in st.secrets else os.getenv("DATABASE_URL")
+
 engine = create_engine(DATABASE_URL)
 
 st.title("Quantitative Dashboard")

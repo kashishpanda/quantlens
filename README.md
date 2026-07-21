@@ -5,6 +5,8 @@ designed to simulate the data infrastructure used by professional finance teams.
 It automates the ingestion, storage, and analysis of equity market data, 
 exposing results through a REST API and interactive dashboard.
 
+- Live dashboard: https://quantlens-kashish.streamlit.app
+
 ## Current Capabilities
 - Automated equity data ingestion from Yahoo Finance via yfinance
 - Persistent storage in a normalized PostgreSQL database
@@ -76,6 +78,7 @@ quantlens/
 └── tests/           # Test suite
 
 ## Roadmap
-- Version 2: Multi-stock automation, scheduling, cloud deployment
-- Version 3: Advanced analytics, alerting system
+- Version 1: MVP — data pipeline, analytics, API, dashboard
+- Version 2: Multi-stock automation, scheduling, config table, error handling
+- Version 3: Cloud deployment — Supabase PostgreSQL, Streamlit Cloud
 - Version 4: ML layer — regime detection and signal generation
