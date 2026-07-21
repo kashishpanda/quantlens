@@ -5,8 +5,11 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-DATABASE_URL = st.secrets.get("DATABASE_URL") if hasattr(st, "secrets") and "DATABASE_URL" in st.secrets else os.getenv("DATABASE_URL")
-
+try:
+    DATABASE_URL = st.secrets["DATABASE_URL"]
+except:
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    
 engine = create_engine(DATABASE_URL)
 
 st.title("Quantitative Dashboard")
@@ -40,8 +43,14 @@ st.line_chart(df.set_index("date")["daily_return"].dropna())
 
 # Summary stats
 st.subheader(f"{ticker} - Summary")
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4, col5 = st.columns(5)
+
+volatility = df["daily_return"].std()
+sharpe = df["daily_return"].mean() / volatility
+max_dd = ((1 + df["daily_return"]/100).cumprod() / (1 + df["daily_return"]/100).cumprod().cummax() - 1).min() * 100
 
 col1.metric("Latest Close", f"${df['close'].iloc[-1]:.2f}")
 col2.metric("Monthly Return", f"{((df['close'].iloc[-1] / df['close'].iloc[0]) - 1) * 100:.2f}%")
-col3.metric("Volatility", f"{df['daily_return'].std():.2f}%")
+col3.metric("Volatility", f"{volatility:.2f}%")
+col4.metric("Sharpe Ratio", f"{sharpe:.3f}")
+col5.metric("Max Drawdown", f"{max_dd:.2f}%")
