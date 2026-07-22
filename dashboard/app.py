@@ -75,3 +75,43 @@ if regime_row:
         st.warning(f"🟡 {regime}")
 else:
     st.info("No regime data available")
+
+
+# Backtesting Results
+st.subheader(f"{ticker} - Backtest Results")
+
+with engine.connect() as conn:
+    bt_data = pd.read_sql(
+        text("SELECT e.date, e.close, s.regime_label FROM equity_prices e JOIN stock_regimes s ON e.date = s.date AND e.ticker = s.ticker WHERE e.ticker = :ticker ORDER BY e.date ASC"),
+        conn,
+        params={"ticker": ticker}
+    )
+
+if not bt_data.empty:
+    # Run backtest
+    capital = 1000
+    position = 0
+    portfolio_values = []
+
+    for _, row in bt_data.iterrows():
+        price = row["close"]
+        regime = row["regime_label"]
+        if regime == "Trending Up" and position == 0:
+            position = capital / price
+            capital = 0
+        elif regime == "Trending Down" and position > 0:
+            capital = position * price
+            position = 0
+        current_value = capital + (position * price)
+        portfolio_values.append(current_value)
+
+    bt_data["portfolio_value"] = portfolio_values
+    final_value = portfolio_values[-1]
+    strategy_return = ((final_value - 1000) / 1000) * 100
+    buy_hold_return = ((bt_data["close"].iloc[-1] - bt_data["close"].iloc[0]) / bt_data["close"].iloc[0]) * 100
+
+    col1, col2 = st.columns(2)
+    col1.metric("Strategy Return", f"{strategy_return:.2f}%")
+    col2.metric("Buy & Hold Return", f"{buy_hold_return:.2f}%")
+
+    st.line_chart(bt_data.set_index("date")["portfolio_value"])
